@@ -7,11 +7,11 @@ output: html_document
 
 # Step 1: gage ID
 ```{r}
-st_all_gage<-c("12413370")
+st_all_gage<-c("13150430") # 13150430, 12413370
 input<-paste("../data_prep/prism_df_summer_",st_all_gage,".rds",sep="") # "../data_prep/prism_df_summer_13266000.rds"
 PASTA_name<- " "
 rinf_RDS<-paste("rinf_",st_all_gage,  "_mean_ST.rds" ,sep="")
-month=c(  6,7,8)
+month=c(  7)
 ```
 
 ```{r}
@@ -63,12 +63,164 @@ hist(daily_df_summer$X_00060_00003 )
 ```
 
 ```{r}
-df_2021<-daily_df_summer[daily_df_summer$yr==2021,]
-plot(df_2021$Date, df_2021$X_00010_00003)
-plot(df_2021$Date, df_2021$X_00060_00003 )
-plot(df_2021$Date, df_2021$tmean..degrees.C. )
+df_2021<-daily_df_summer[daily_df_summer$yr==2023,]
+plot(df_2021$Date, df_2021$X_00010_00003, main = "X_00010_00003")
+plot(df_2021$Date, df_2021$ppt..mm. , main = "ppt..mm." )
+plot(df_2021$Date, df_2021$X_00060_00003, main = "X_00060_00003" )
+plot(df_2021$Date, df_2021$tmean..degrees.C., main = "tmean..degrees.C." )
 ```
 
+
+```{r}
+df_2021<-daily_df_summer[daily_df_summer$yr==2021 & daily_df_summer$mo==6,]
+plot(df_2021$Date, df_2021$X_00010_00003, main = "X_00010_00003")
+plot(df_2021$Date, df_2021$ppt..mm. , main = "ppt..mm." )
+plot(df_2021$Date, df_2021$X_00060_00003, main = "X_00060_00003" )
+plot(df_2021$Date, df_2021$tmean..degrees.C., main = "tmean..degrees.C." )
+```
+
+
+
+# Model: GBM
+```{r}
+# set seed for generating random data.
+set.seed(42)
+
+# createDataPartition() function from the caret package to split the original dataset into a training and testing set and split data into training (80%) and testing set (20%)
+variables<-c("X_00010_00001",
+             #"X_00010_00003",
+"tmax..degrees.C.",             
+#"tmean..degrees.C.",
+
+  "X_00060_00003"     
+
+             )
+
+parts = createDataPartition(  daily_df_summer$X_00010_00003  , p = 0.8, list = F)
+train = daily_df_summer[parts, variables ]
+print(train)
+test =  daily_df_summer[-parts, variables  ]
+
+# feature and target array
+test_x = test[, -1] 
+test_y = test[, 1] 
+#print(test_y)
+```
+
+```{r}
+model_gbm = gbm(train$X_00010_00001       ~.,
+                data = train,
+                distribution = "gaussian",
+                cv.folds = 10,
+                shrinkage = .01,
+                n.minobsinnode = 10,
+                n.trees = 200)
+ 
+# model performance
+perf_gbm1 = gbm.perf( model_gbm, method = "cv")
+print(model_gbm)
+summary(model_gbm)
+rinf<-summary(model_gbm)
+#barplot( rinf$rel.inf , horiz = TRUE, las = 1)
+#ggplot(rinf, aes(rel.inf)) + geom_bar()
+rinf$max_yr<-max(as.numeric(daily_df_summer$yr))
+rinf$min_yr<-min(as.numeric(daily_df_summer$yr))
+rinf$site_id<- st_all_gage
+
+rinf$var<- factor(rinf$var, levels=c(  "mean_AirTemperature_C" ,"log_mean_Q"
+))
+
+#ggplot( rinf, aes( var , rel.inf ))+  geom_col()+  coord_flip()
+
+
+ggplot( rinf )+  geom_bar(  aes( x=var, y= rel.inf),  stat = "summary")+ scale_x_discrete(labels=  c( "Mean Air Temperature (deg C)" ,"log(Mean Streamflow (cfs))"
+ ) )+ylab("Relative importance (%)") +xlab(" ")  + theme(text=element_text(size=16))+
+  ggtitle( 
+    PASTA_name # paste("USGS",st_all_gage)
+    )+ylim( c(0,75))
+
+saveRDS(rinf ,file=   rinf_RDS  )
+```
+
+```{r}
+#test_y <-test_y$max_StreamTemp
+pred_y = predict.gbm(model_gbm, test_x)
+residuals =  test_y   - pred_y
+summary(test_y )
+xlim=c(0,30)
+RMSE = sqrt(mean(residuals^2))
+cat('The root mean square error of the test data is ', round(RMSE,3),'\n')
+y_test_mean = mean( test_y  )
+# Calculate total sum of squares
+tss =  sum(( test_y   - y_test_mean)^2 )
+# Calculate residual sum of squares
+rss =  sum(residuals^2)
+# Calculate R-squared
+rsq  =  1 - (rss/tss)
+cat('The R-square of the test data is ', round(rsq,3), '\n')
+# visualize the model, actual and predicted data
+x_ax = 1:length(pred_y)
+plot(x_ax, test_y  , col="blue", pch=20, cex=.9)
+lines(x_ax, pred_y, col="red", pch=20, cex=.9) 
+plot(  test_y , pred_y,xlim= xlim ,ylim= xlim, xlab="Observed stream temperature (degC)", ylab="Predicted stream temperature (degC)", main="GBM")
+par(new=T)
+x=seq(1,30)
+plot(x,x,type="l",xlim= xlim ,ylim= xlim,xlab="",ylab="")
+```
+
+```{r}
+#install.packages("e1071", repos="http://R-Forge.R-project.org")
+library("e1071")
+library("ModelMetrics")
+
+svm_model <- svm(  X_00010_00003~ tmean..degrees.C. + X_00060_00003  , data = daily_df_summer[parts,], scale = FALSE #, gamma=1 
+                  )
+svm_model
+#predicted vals for all X
+predictYsvm <- predict(svm_model, daily_df_summer[-parts,])
+
+
+x=seq(1,30)
+plot( daily_df_summer[-parts,]$X_00010_00003 , predictYsvm,xlim=c(4,26) ,ylim=c(4,26), xlab="Observed stream temperature (degC)", ylab="Predicted stream temperature (degC)")
+par(new=T)
+plot(x,x,type="l",xlim=c(4,26) ,ylim=c(4,26),xlab="",ylab="", main="SVM")
+
+
+
+residuals =  daily_df_summer[-parts,]$X_00010_00003   - predictYsvm
+RMSE = sqrt(mean(residuals^2))
+cat('The root mean square error of the test data is ', round(RMSE,3),'\n')
+
+mse( daily_df_summer[-parts,]$X_00010_00003 , predictYsvm)
+R2( daily_df_summer[-parts,]$X_00010_00003, predictYsvm)
+```
+
+```{r}
+
+summary(train$X_00010_00003)
+
+summary(test_y)
+
+summary(predictYsvm)
+
+
+
+
+summary(pred_y)
+
+
+hist(predictYsvm)
+hist(pred_y)
+
+plot(daily_df_summer$tmean..degrees.C., daily_df_summer$X_00010_00003, xlim=c(0,30), ylim=c(0,30))
+```
+
+```{r}
+#days w/o rain
+
+daily_df_summer <- daily_df_summer[daily_df_summer$ppt..mm.==0,]
+
+```
 
 # Model: GBM
 ```{r}
@@ -79,7 +231,6 @@ set.seed(42)
 variables<-c("X_00010_00003",
              
 "tmean..degrees.C.",
-
 
   "X_00060_00003"     
 
@@ -157,7 +308,6 @@ x=seq(1,30)
 plot(x,x,type="l",xlim= xlim ,ylim= xlim,xlab="",ylab="")
 ```
 
-
 ```{r}
 #install.packages("e1071", repos="http://R-Forge.R-project.org")
 library("e1071")
@@ -204,4 +354,3 @@ hist(pred_y)
 
 plot(daily_df_summer$tmean..degrees.C., daily_df_summer$X_00010_00003, xlim=c(0,30), ylim=c(0,30))
 ```
-
