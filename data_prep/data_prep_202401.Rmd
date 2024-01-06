@@ -7,7 +7,7 @@ output: html_document
 
 # Step 1: gage ID
 ```{r}
-st_all_gage<-c("12413370") 
+st_all_gage<-c("13150430") # 13150430, 12413370
 #https://waterdata.usgs.gov/monitoring-location/13266000/#parameterCode=00065&period=P7D&showMedian=false
 
 summer=c(6,7,8)
@@ -16,9 +16,9 @@ min_days<- 31*length(summer)* ( 7/8)
 
 RDS<-paste("prism_df_summer_",st_all_gage,".rds",sep="")
 
-startDate <- "2007-10-01"
+startDate <- "2009-10-01"
 
-endDate <- "2021-09-30"
+endDate <- "2023-09-30"
 
 PASTA_name<- st_all_gage #"Groundwater-driven stream (USGS 13266000)"
 
@@ -75,18 +75,13 @@ meanSummerT_df<-data.frame(
 meanSummerT_df
 ```
 
-
 ```{r}
 for (id in st_all_gage) {
   siteNumber <-  id 
   parameterCd <- c("00010","00060") 
-
-  
   ChoptankInfo <- readNWISsite(siteNumber)
  #ChoptankInfo$alt_va : Gage datum feet above NGVD29
 
-
-  
   meanT <-readNWISdv(siteNumber, parameterCd,startDate, endDate, statCd=  statCd )
   if (dim(meanT )[2]>5){
     meanT$yr<- format(meanT$Date, format = "%Y") 
@@ -122,8 +117,6 @@ summary(df)
 
 merge dfs
 ```{r}
-
-
 
 prism_df<-merge(prism,df,by.x="Date",by.y= "Date")
 
