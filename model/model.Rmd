@@ -7,11 +7,11 @@ output: html_document
 
 # Step 1: gage ID
 ```{r}
-st_all_gage<-c("13150430") # 13150430, 12413370
+st_all_gage<-c("12413370") # 13150430, 12413370
 input<-paste("../data_prep/prism_df_summer_",st_all_gage,".rds",sep="") # "../data_prep/prism_df_summer_13266000.rds"
 PASTA_name<- " "
 rinf_RDS<-paste("rinf_",st_all_gage,  "_mean_ST.rds" ,sep="")
-month=c(  7)
+month=c(  6,7,8)
 ```
 
 ```{r}
@@ -63,7 +63,7 @@ hist(daily_df_summer$X_00060_00003 )
 ```
 
 ```{r}
-df_2021<-daily_df_summer[daily_df_summer$yr==2023,]
+df_2021<-daily_df_summer[daily_df_summer$yr==2021,]
 plot(df_2021$Date, df_2021$X_00010_00003, main = "X_00010_00003")
 plot(df_2021$Date, df_2021$ppt..mm. , main = "ppt..mm." )
 plot(df_2021$Date, df_2021$X_00060_00003, main = "X_00060_00003" )
@@ -228,7 +228,7 @@ daily_df_summer <- daily_df_summer[daily_df_summer$ppt..mm.==0,]
 set.seed(42)
 
 # createDataPartition() function from the caret package to split the original dataset into a training and testing set and split data into training (80%) and testing set (20%)
-variables<-c("X_00010_00003",
+variables<-c("X_00010_00001",
              
 "tmean..degrees.C.",
 
@@ -248,7 +248,7 @@ test_y = test[, 1]
 ```
 
 ```{r}
-model_gbm = gbm(train$X_00010_00003        ~.,
+model_gbm = gbm(train$X_00010_00001        ~.,
                 data = train,
                 distribution = "gaussian",
                 cv.folds = 10,
@@ -337,13 +337,11 @@ R2( daily_df_summer[-parts,]$X_00010_00003, predictYsvm)
 
 ```{r}
 
-summary(train$X_00010_00003)
+summary(train$X_00010_00001)
 
 summary(test_y)
 
 summary(predictYsvm)
-
-
 
 
 summary(pred_y)
