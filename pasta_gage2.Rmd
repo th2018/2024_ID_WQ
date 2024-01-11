@@ -1,0 +1,98 @@
+---
+title: "Untitled"
+author: "Tao Huang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+# devtools::install_github('mccreigh/rwrfhydro')
+library("rwrfhydro")
+CheckForUpdates()
+library("dataRetrieval")
+library("ggplot2")
+```
+
+```{r}
+gage2<-gages2AttrPlus[gages2AttrPlus$STATE=="ID",]
+gage2
+```
+
+
+```{r}
+# Read a comma-separated values (csv) file into DataFrame.
+
+pasta<-read.csv("ThermalMetricsyearly_NWIS-2.csv") 
+pasta$site_id_str<-as.character(pasta$site_id)
+
+pasta_clean<-pasta[!is.na(pasta$AmpRatio),]
+# Lower Ar means higher groundwater influence
+# Phase lag< -4: might be problematic
+pasta_clean <-pasta_clean[pasta_clean$PhaseLag_d > -4,]
+pasta_clean <-pasta_clean[pasta_clean$Ratio_Mean <= 1  ,]
+
+####
+
+
+site_id <- c(0)
+drain_area_va <- c(0 )
+alt_va <- c( 0)
+siteINFO_df <- data.frame(site_id, drain_area_va, alt_va)
+names(siteINFO_df) <- c("site_id", "drain_area_va", "alt_va")
+
+for (id in pasta_clean$site_id) {
+siteINFO <- readNWISsite(id ) 
+#print(siteINFO$drain_area_va)
+#print(siteINFO$alt_va )
+siteINFO_df1 <- data.frame(id, siteINFO$drain_area_va, siteINFO$alt_va)
+names(siteINFO_df1) <- c("site_id", "drain_area_va", "alt_va")
+siteINFO_df<-rbind(siteINFO_df,siteINFO_df1)
+}
+print(siteINFO_df)
+
+
+####
+
+summary(pasta_clean)
+print(pasta_clean)
+
+```
+
+```{r}
+pasta_gage <- merge( pasta_clean, gage2, by.x = "site_id_str", by.y = "STAID", all = TRUE)
+pasta_gage <- merge( pasta_gage, siteINFO_df, by.x = "site_id", by.y = "site_id", all = FALSE)
+pasta_gage
+```
+
+```{r}
+pasta_gage_clean<-pasta_gage[!is.na(pasta_gage$AmpRatio),]
+pasta_gage_clean
+```
+
+```{r}
+
+
+
+library(ggplot2)
+ggplot( pasta_gage, aes( alt_va,  TS__Slope, color = CLASS)) + geom_point()
+
+ggplot( pasta_gage , aes(  drain_area_va,  TS__Slope, color = CLASS)) + geom_point()
+
+```
+
+
+```{r}
+ggplot( pasta_gage_clean, aes( DRAIN_SQKM,  TS__Slope, color = CLASS)) + geom_point()
+
+boxplot(pasta_gage_clean$TS__Slope~pasta_gage_clean$CLASS)
+```
+
+```{r}
+#siteINFO <- readNWISsite("05114000")
+#siteINFO$contrib_drain_area_va
+#dec_lat_va
+# alt_va
+#drain_area_va 
+#contrib_drain_area_va: Contributing drainage area is the total area that contributes runoff upstream of the stream site of interest.
+```
+
