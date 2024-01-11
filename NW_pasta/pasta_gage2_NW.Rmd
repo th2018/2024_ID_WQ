@@ -1,0 +1,152 @@
+---
+title: "Untitled"
+author: "Tao Huang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+# devtools::install_github('mccreigh/rwrfhydro')
+library("rwrfhydro")
+CheckForUpdates()
+library("dataRetrieval")
+library("ggplot2")
+```
+
+```{r}
+gage2<-gages2AttrPlus[gages2AttrPlus$STATE %in% c("ID","OR","WA") ,]
+gage2
+table( gage2$STATE)
+```
+
+```{r}
+list.files()
+
+OR_2017_2019_1 <-read.csv( "ThermalMetricsyearly_NWIS_OR_2017_2019_1.csv")
+OR_2017_2019_1
+
+OR_2017_2019 <-read.csv( "ThermalMetricsyearly_NWIS_OR_2017_2019.csv")
+OR_2017_2019
+
+WA_2016_2020 <-read.csv( "ThermalMetricsyearly_NWIS_WA_2016_2020.csv")
+WA_2016_2020
+
+ID_2016_2020 <-read.csv( "ThermalMetricsyearly_NWIS_ID_2016_2020.csv")
+ID_2016_2020
+
+pasta<-rbind(OR_2017_2019_1,OR_2017_2019,WA_2016_2020,ID_2016_2020)
+pasta
+
+
+```
+
+```{r}
+
+
+pasta$site_id_str<-as.character(pasta$site_id)
+
+pasta_clean<-pasta[!is.na(pasta$AmpRatio),]
+# Lower Ar means higher groundwater influence
+# Phase lag< -4: might be problematic
+pasta_clean <-pasta_clean[pasta_clean$PhaseLag_d > -4,]
+pasta_clean <-pasta_clean[pasta_clean$Ratio_Mean <= 1  ,]
+
+####
+
+
+site_id <- c(0)
+drain_area_va <- c(0 )
+alt_va <- c( 0)
+siteINFO_df <- data.frame(site_id, drain_area_va, alt_va)
+names(siteINFO_df) <- c("site_id", "drain_area_va", "alt_va")
+
+for (id in unique(pasta_clean$site_id) ) {
+siteINFO <- readNWISsite(id ) 
+#print(siteINFO$drain_area_va)
+#print(siteINFO$alt_va )
+siteINFO_df1 <- data.frame(id, siteINFO$drain_area_va, siteINFO$alt_va)
+names(siteINFO_df1) <- c("site_id", "drain_area_va", "alt_va")
+siteINFO_df<-rbind(siteINFO_df,siteINFO_df1)
+}
+print(siteINFO_df)
+
+
+####
+
+summary(pasta_clean)
+print(pasta_clean)
+
+```
+
+```{r}
+pasta_gage <- merge( pasta_clean, gage2, by.x = "site_id_str", by.y = "STAID", all = FALSE)
+pasta_gage
+pasta_gage2 <- merge( pasta_gage, siteINFO_df, by.x = "site_id", by.y = "site_id", all = FALSE)
+pasta_gage2
+
+save(pasta_gage2,file = "pasta_gage2.Rdata")
+
+ref<-pasta_gage2[pasta_gage2$CLASS =="Ref",]
+```
+
+```{r}
+
+
+
+library(ggplot2)
+ggplot( pasta_gage2, aes( alt_va,  TS__Slope, color = CLASS)) + geom_point()
+
+hist(ref$alt_va)
+ggplot( ref, aes( alt_va,  TS__Slope #, color = ref$STATE
+                  )) + geom_point()+geom_smooth( method = lm )
+summary(lm(ref$TS__Slope~ref$alt_va))
+summary(lm(ref$AmpRatio ~ref$alt_va))
+
+ggplot( pasta_gage2 , aes(  drain_area_va,  TS__Slope, color = CLASS)) + geom_point()
+
+```
+
+
+```{r}
+ggplot( ref, aes( DRAIN_SQKM,  TS__Slope #, color = ref$HUC08
+                  )) + geom_point()+geom_smooth( method = lm )
+
+ref_sm<-ref[ref$drain_area_va<500,]
+ggplot( ref_sm, aes( DRAIN_SQKM,  TS__Slope #, color = CLASS
+                     )) + geom_point()+geom_smooth( method = lm )
+
+ggplot( ref_sm, aes( DRAIN_SQKM,  TS__Slope , color = HUC08
+                     )) + geom_point()
+
+boxplot(pasta_gage2$TS__Slope~pasta_gage2$CLASS)
+```
+
+```{r}
+summary(lm(ref$TS__Slope~ref$alt_va+ref$drain_area_va ))
+```
+
+```{r}
+boxplot(ref$TS__Slope ~ref$HUC08)
+
+table(ref$HUC08)
+
+boxplot(ref$TS__Slope ~ref$HUC08)
+
+ref_sub<-ref[ref$HUC08 %in% c(17060306 ,17060307,17080001 ,17090001 ,17090004,17110004, 17110009, 17110010 ,17110012, 17110017),]
+
+boxplot(ref_sub$TS__Slope ~ref_sub$HUC08)
+
+# 17060306 - Clearwater
+# 17110012 - Lake Washington
+```
+
+
+```{r}
+#siteINFO <- readNWISsite("05114000")
+#siteINFO$contrib_drain_area_va
+#dec_lat_va
+# alt_va
+#drain_area_va 
+#contrib_drain_area_va: Contributing drainage area is the total area that contributes runoff upstream of the stream site of interest.
+```
+
