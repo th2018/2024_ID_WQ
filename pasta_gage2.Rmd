@@ -16,6 +16,9 @@ library("ggplot2")
 ```{r}
 gage2<-gages2AttrPlus[gages2AttrPlus$STATE=="ID",]
 gage2
+#"13311000"
+"13342295" %in% gage2$STAID
+"13311000" %in% gage2$STAID
 ```
 
 
@@ -63,6 +66,14 @@ pasta_gage <- merge( pasta_clean, gage2, by.x = "site_id_str", by.y = "STAID", a
 pasta_gage <- merge( pasta_gage, siteINFO_df, by.x = "site_id", by.y = "site_id", all = FALSE)
 pasta_gage
 ```
+
+```{r}
+pasta_gage_ws<-pasta_gage[,c("site_id","CLASS","DRAIN_SQKM","alt_va")]
+pasta_gage_ws
+summary(pasta_gage_ws$DRAIN_SQKM)
+pasta_gage_ws[pasta_gage_ws$DRAIN_SQKM<10000,]
+```
+
 
 ```{r}
 pasta_gage_clean<-pasta_gage[!is.na(pasta_gage$AmpRatio),]
