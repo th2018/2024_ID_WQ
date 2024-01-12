@@ -7,7 +7,7 @@ output: html_document
 
 # Step 1: gage ID
 ```{r}
-st_all_gage<-c("13266000") # 13150430, 12413370,  13266000
+st_all_gage<-c("13311000") # 13150430, 12413370,  13266000, 13311000
 #https://waterdata.usgs.gov/monitoring-location/13266000/#parameterCode=00065&period=P7D&showMedian=false
 
 summer=c(6,7,8)
@@ -18,9 +18,9 @@ RDS<-paste("prism_df_summer_",st_all_gage,".rds",sep="")
 
 data_for_py <- paste("prism_df_summer_",st_all_gage,".csv",sep="")
 
-startDate <- "2016-10-01"
+startDate <- "2011-10-01"
 
-endDate <- "2018-09-30"
+endDate <- "2023-09-30"
 
 PASTA_name<- st_all_gage #"Groundwater-driven stream (USGS 13266000)"
 
@@ -141,6 +141,21 @@ prism_df_summer
 summary(prism_df_summer)
 
 ```
+
+```{r}
+prism_df
+
+boxplot(log(prism_df_summer$X_00060_00003) ~ prism_df_summer$yr)
+
+boxplot(   (prism_df_summer$tmean..degrees.C. - prism_df_summer$X_00010_00003 ) ~ prism_df_summer$yr)
+
+
+boxplot(   prism_df_summer$tmean..degrees.C.   ~ prism_df_summer$yr)
+
+boxplot(   prism_df_summer$X_00010_00003   ~ prism_df_summer$yr)
+
+```
+
 
 ```{r}
 getwd()
