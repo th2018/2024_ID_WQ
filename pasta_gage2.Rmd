@@ -19,6 +19,8 @@ gage2
 #"13311000"
 "13342295" %in% gage2$STAID
 "13311000" %in% gage2$STAID
+"13296000" %in% gage2$STAID
+"13092747"  %in% gage2$STAID
 ```
 
 
