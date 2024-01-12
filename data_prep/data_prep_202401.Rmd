@@ -7,7 +7,7 @@ output: html_document
 
 # Step 1: gage ID
 ```{r}
-st_all_gage<-c("13311000") # 13150430, 12413370,  13266000, 13311000
+st_all_gage<-c("13340600") # 13150430, 12413370,  13266000, 13311000, 13340600
 #https://waterdata.usgs.gov/monitoring-location/13266000/#parameterCode=00065&period=P7D&showMedian=false
 
 summer=c(6,7,8)
@@ -18,7 +18,7 @@ RDS<-paste("prism_df_summer_",st_all_gage,".rds",sep="")
 
 data_for_py <- paste("prism_df_summer_",st_all_gage,".csv",sep="")
 
-startDate <- "2011-10-01"
+startDate <- "2016-10-01"
 
 endDate <- "2023-09-30"
 
@@ -161,6 +161,14 @@ boxplot(   prism_df_summer$X_00010_00003   ~ prism_df_summer$yr)
 getwd()
 saveRDS(prism_df_summer,RDS)
 write.csv(prism_df_summer,data_for_py)
+```
+
+# pasta
+```{r}
+prism_df_positive<-prism_df[ prism_df$tmean..degrees.C. >0,]
+lim=c(0, max(prism_df$tmean..degrees.C.)+1 )
+plot(prism_df_positive$tmean..degrees.C., prism_df_positive$X_00010_00003, xlim = lim,ylim=lim )
+summary(lm(  prism_df_positive$X_00010_00003 ~ prism_df_positive$tmean..degrees.C.  ))
 ```
 
 ```{r}
