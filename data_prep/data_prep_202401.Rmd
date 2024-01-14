@@ -7,7 +7,7 @@ output: html_document
 
 # Step 1: gage ID
 ```{r}
-st_all_gage<-c("13340600") # 13150430, 12413370,  13266000, 13311000, 13340600
+st_all_gage<-c("13092747") # 13150430, 12413370,  13266000, 13311000, 13340600, 13092747
 #https://waterdata.usgs.gov/monitoring-location/13266000/#parameterCode=00065&period=P7D&showMedian=false
 
 summer=c(6,7,8)
@@ -18,7 +18,7 @@ RDS<-paste("prism_df_summer_",st_all_gage,".rds",sep="")
 
 data_for_py <- paste("prism_df_summer_",st_all_gage,".csv",sep="")
 
-startDate <- "2016-10-01"
+startDate <- "2012-10-01"
 
 endDate <- "2023-09-30"
 
