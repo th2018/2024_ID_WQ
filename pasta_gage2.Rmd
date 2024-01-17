@@ -21,6 +21,8 @@ gage2
 "13311000" %in% gage2$STAID
 "13296000" %in% gage2$STAID
 "13092747"  %in% gage2$STAID
+"13150430" %in% gage2$STAID
+gage2[ "13150430"  == gage2$STAID ,]
 ```
 
 
