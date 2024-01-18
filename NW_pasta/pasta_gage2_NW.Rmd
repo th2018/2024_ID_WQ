@@ -34,7 +34,10 @@ WA_2016_2020
 ID_2016_2020 <-read.csv( "ThermalMetricsyearly_NWIS_ID_2016_2020.csv")
 ID_2016_2020
 
-pasta<-rbind(OR_2017_2019_1,OR_2017_2019,WA_2016_2020,ID_2016_2020)
+ID_2019_2020 <-read.csv( "ThermalMetricsyearly_NWIS_ID_2019_2020.csv")
+ID_2019_2020
+
+pasta<-rbind(OR_2017_2019_1,OR_2017_2019,WA_2016_2020,ID_2016_2020, ID_2019_2020)
 pasta
 
 
@@ -79,15 +82,58 @@ print(pasta_clean)
 ```
 
 ```{r}
+pasta_clean
+
+
+
+
+```
+
+
+```{r}
 pasta_gage <- merge( pasta_clean, gage2, by.x = "site_id_str", by.y = "STAID", all = FALSE)
 pasta_gage
 pasta_gage2 <- merge( pasta_gage, siteINFO_df, by.x = "site_id", by.y = "site_id", all = FALSE)
 pasta_gage2
 
-save(pasta_gage2,file = "pasta_gage2.Rdata")
+#save(pasta_gage2,file = "pasta_gage2.Rdata")
 
 ref<-pasta_gage2[pasta_gage2$CLASS =="Ref",]
 ```
+
+```{r}
+
+
+df_for_kmean<-  pasta_gage2[,c("site_id", "STATE"                       , "AmpRatio", "CLASS","alt_va", "DRAIN_SQKM")]
+#df_for_kmean<-  ref[,c("site_id", "STATE"                       , "AmpRatio"                       ,"alt_va", "DRAIN_SQKM")]
+#df_for_kmean<- df_for_kmean [ !is.na(df_for_kmean$alt_va) ,]
+#df_for_kmean<- df_for_kmean [ !is.na(df_for_kmean$alt_va) ,]
+
+#df_for_kmean$CLASS<-as.factor( df_for_kmean$CLASS )
+
+df_for_kmean<-na.omit(df_for_kmean)
+
+head(df_for_kmean)
+summary(  df_for_kmean )
+
+k<-kmeans(df_for_kmean[,c(
+  #"AmpRatio" ,
+  "alt_va"
+  #, "DRAIN_SQKM"
+  )], 2)
+k
+```
+
+```{r}
+df_for_kmean$k<-k$cluster
+df_for_kmean_ID<-df_for_kmean[df_for_kmean$STATE=="ID",]
+df_for_kmean_ID
+```
+
+```{r}
+df_for_kmean[df_for_kmean$k== 1,]
+```
+
 
 ```{r}
 
