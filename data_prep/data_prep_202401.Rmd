@@ -7,10 +7,10 @@ output: html_document
 
 # Step 1: gage ID
 ```{r}
-st_all_gage<-c("13296000") # 13150430, 12413370
+st_all_gage<-c("13016450") # 13150430, 12413370
 #,13266000
 #,13296000
-#, 13311000, 13340600, 13092747, 12305000, 13342500
+#, 13311000, 13340600 , 12305000, 13342500, 13016450, 13092747
 #https://waterdata.usgs.gov/monitoring-location/13266000/#parameterCode=00065&period=P7D&showMedian=false
 
 summer=c(6,7,8)
@@ -21,13 +21,14 @@ RDS<-paste("prism_df_summer_",st_all_gage,".rds",sep="")
 
 data_for_py <- paste("prism_df_summer_",st_all_gage,".csv",sep="")
 
-startDate <- "2011-10-01"
+startDate <- "2009-10-01"
 
 endDate <- "2023-09-30"
 
 PASTA_name<- st_all_gage #"Groundwater-driven stream (USGS 13266000)"
 
 prism_csv <- paste("PRISM_USGS_",st_all_gage,".csv", sep="")
+print(prism_csv)
 
 statCd= c("00001","00003") #00001 max, 00003 mean
 
@@ -49,6 +50,7 @@ library("tidyverse")      # data manipulation and visualization
 siteINFO <- dataRetrieval::readNWISsite( st_all_gage )
 print(siteINFO)
 print(c(siteINFO$dec_lat_va,siteINFO$dec_long_va))
+print("https://prism.oregonstate.edu/explorer/")
 ```
 
 # https://prism.oregonstate.edu/explorer/
@@ -75,7 +77,8 @@ meanSummerT_df<-data.frame(
   X_00060_00003=0,    
   X_00060_00003_cd= "",
   yr="",
-  mo=0
+  mo=0,
+waterYear=0
   )
 meanSummerT_df
 ```
@@ -88,6 +91,7 @@ for (id in st_all_gage) {
  #ChoptankInfo$alt_va : Gage datum feet above NGVD29
 
   meanT <-readNWISdv(siteNumber, parameterCd,startDate, endDate, statCd=  statCd )
+  meanT <- addWaterYear(meanT)
   if (dim(meanT )[2]>5){
     meanT$yr<- format(meanT$Date, format = "%Y") 
     meanT$mo<-as.numeric(format(meanT$Date, format = "%m"))
@@ -100,7 +104,7 @@ for (id in st_all_gage) {
                           # ,"X_00060_00001_cd"
                            ,"X_00060_00003"
                            ,"X_00060_00003_cd"
-                           ,"yr","mo"  )]
+                           ,"yr","mo" ,"waterYear" )]
     meanSummerT_df <-rbind(meanSummerT_df,meanSummerT)
   }
 }
@@ -177,7 +181,7 @@ summary(lm(  prism_df_positive$X_00010_00003 ~ prism_df_positive$tmean..degrees.
 ```{r}
 prism_df_positive_17_20<- prism_df_positive[prism_df_positive$yr %in% c("2017","2020"),]
 lim=c(0, max(prism_df$tmean..degrees.C.)+1 )
-plot( prism_df_positive_17_20$tmean..degrees.C.,  prism_df_positive_17_20$X_00010_00003, xlim = lim,ylim=lim, col=prism_df_positive$yr )
+plot( prism_df_positive_17_20$tmean..degrees.C.,  prism_df_positive_17_20$X_00010_00003, xlim = lim,ylim=lim, col=prism_df_positive_17_20$yr )
 summary(lm(   prism_df_positive_17_20$X_00010_00003 ~ prism_df_positive_17_20$tmean..degrees.C.  ))
 ```
 
