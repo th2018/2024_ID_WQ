@@ -1,0 +1,360 @@
+---
+title: "paired_annualT_signals"
+author: "Tao Huang"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Annual Signal Functions
+```{r}
+library("lubridate")
+library("tidyverse")
+library("smwrBase")
+# install.packages("dataRetrieval")
+library("dataRetrieval") # for getting USGS NWIS data
+```
+
+```{r}
+## ----------- Heed the Data Gaps -----------------##
+## Assess the data inputs for missing data or incorrect data (values >100) ##
+## Based on Johson 2021 analysis 
+
+data_gap_check <- function(df){
+  #df <- Tem_df#bebuggg remove
+  #df <- T.y
+  df_1 <- df %>%
+    dplyr::select(-one_of(c("flow", "bfi_daily")))%>% #one_of allows df without flow or bfi daily
+    na.omit(df) %>%
+    dplyr::filter(tavg_wat_C < 70) #removing weird values
+  
+  df_l <- lapply(unique(df$site_id), function(x){
+                #
+                df.x <- dplyr::filter(df, site_id == x)
+                df.x$date <- as.Date(df.x$date)
+                #calculate number of seq missing dates
+                df.x$datediff <- difftime(df.x$date,lag(df.x$date),units=c("days"))
+                
+                val <- as.numeric(max(df.x$datediff, na.rm = TRUE))
+                
+                peryear <- as.numeric(nrow(df.x))
+                
+                df.y <- data.frame("site_id" = as.character(x),"max_conseq_missing_days" = val, "count" = peryear)
+              }
+      
+        )#end lapply
+
+  
+  df <- do.call(rbind.data.frame, df_l)
+}
+```
+
+## ----------- Calcuate radian date from date------ ##
+```{r}
+rad_day <- function(x, yr_type){ #input date vector
+
+  print(head(x))
+  if(missing(yr_type)){
+    yr_type <- "water" #use water year unless calendar is specified
+  }
+  
+  # #calendar year
+  if(yr_type == "calendar"){
+  d <- yday(as.POSIXct(x, format="%Y-%m-%d"))
+  
+  } else { #use water year 
+    
+  wtr_yr <- as.numeric(as.character(waterYear(as.POSIXct(x, format="%Y-%m-%d")))) #to convert factor to numeric must convert first to character
+  d <- as.Date(x, format="%Y-%m-%d")
+  d_df <- data.frame(wtr_yr, d)
+               #https://stackoverflow.com/questions/48123049/create-day-index-based-on-water-year
+  wtr_df <- d_df %>%
+                 group_by(wtr_yr) %>% 
+                 mutate(wtr_day = as.numeric(difftime(d, ymd(paste0(wtr_yr - 1 ,'-09-30')), units = "days")))
+  
+  d <- wtr_df$wtr_day
+  }
+  
+  rad_d <- 2*pi*d/365
+  return(rad_d)
+}
+```
+
+#TAS: Temperature Annual Signal
+#can be used for air temp and surface water temperature extraction of annual signal 
+```{r}
+fit_TAS <- function(date, temp, yr_type){
+  
+  df <- as.data.frame(unlist(temp)) %>%
+    cbind(., date) %>%#has to be done second to keep format (?)
+    dplyr::rename("temp" = 1)
+  
+  #convert to radian date for sinsoidal extract
+  df$rday <- rad_day(df$date, yr_type)
+  
+  #to convert back to Phase Days
+  units_day <- 365
+  
+  #conduct linear fit to a sinsddial function 
+  Tfit.lm <- lm(temp ~ sin(rday) + cos(rday), data = df)
+  
+  #extract equation for the fit 
+  Tsin.lm <- coef(Tfit.lm)['sin(rday)']*sin(df$rday) +
+              coef(Tfit.lm)['cos(rday)']*cos(df$rday) +
+              coef(Tfit.lm)['(Intercept)']#T0 or mean
+  
+  #Calculate Phase of the signal in days
+  Phase <- (units_day/(2*pi))*((3*pi/2) -atan(coef(Tfit.lm)['cos(rday)']/
+                                                   coef(Tfit.lm)['sin(rday)']))
+  
+  #Calculate Amplitude of the signal 
+  Amp <- sqrt((coef(Tfit.lm)['sin(rday)']^2) + (coef(Tfit.lm)['cos(rday)']^2))
+  
+  #remove names to make single values
+  names(Phase) <- NULL; names(Amp) <- NULL
+  #create dataframe output summary data
+  lmStats <- data.frame(amplitude_C = Amp,
+                          phase_d = Phase,
+                        AdjRsqr=summary(Tfit.lm)$adj.r.squared,
+                            RMSE=sqrt(mean(resid(Tfit.lm)^2)),
+                            sinSlope=coef(Tfit.lm)['sin(rday)'],
+                            cosSlope=coef(Tfit.lm)['cos(rday)'],
+                            YInt=coef(Tfit.lm)['(Intercept)'])#; rownames(lmStats) <- "Air" #would like site_no
+  
+  
+return(lmStats)
+  
+  
+  }
+```
+
+```{r}
+#fit_TAS( date, temp, yr_type )
+```
+
+```{r}
+#Thermal Metric Yearly Analysis. 
+TMy_output <- function(df, yr_type){
+  
+  if(missing(yr_type)){
+    yr_type <- "water" #use water year unless calendar is specified
+  }
+  
+  # #calendar year
+  if(yr_type == "calendar"){
+    T.y <- df
+    T.y$year <- as.factor(year(T.y$date))
+    T.yl <- lapply(levels(T.y$year), function(x){
+      df.y <- T.y %>%
+        filter(year == x)#%>%
+      
+      df.j <- left_join(therm_analysis(df.y), data_gap_check(df.y), by = "site_id")
+      
+      df.j$year <- x # add water year as a valuBe in table
+      df.j$year_type <- yr_type
+      
+      df.j
+    }) #end of lapply
+  
+  #Water Year
+  } else {
+      T.y <-  add_waterYear(df)
+      T.y$year_type <- yr_type
+      T.yl <- lapply(levels(T.y$year_water), function(x){
+                    df.y <- T.y %>%
+                      filter(year_water == x)#%>%
+                    
+                    df.j <- left_join(therm_analysis(df.y), data_gap_check(df.y), by = "site_id")
+                    df.j$year <- x # add water year as a valuBe in table
+                    df.j$year_type <- yr_type
+                    df.j
+  })
+  }
+  
+  df <- do.call(rbind.data.frame, T.yl)%>% #
+    mutate(AmpRatio = ifelse(count <= 100, NA, AmpRatio), #if count less than 100 do not report values - but stil can report linear values
+           PhaseLag_d = ifelse(count <= 100, NA, PhaseLag_d),
+           Ratio_Mean = ifelse(count <= 100, NA, Ratio_Mean),
+           )
+}
+```
+
+----
+
+
+# Step 1: gage ID
+```{r}
+st_all_gage<-c("12305000") # 13150430, 12413370
+#,13266000
+#,13296000
+#, 13311000, 13340600 , 12305000, 13342500, 13016450, 13092747
+#https://waterdata.usgs.gov/monitoring-location/13266000/#parameterCode=00065&period=P7D&showMedian=false
+
+#summer=c(6,7,8)
+
+#min_days<- 31*length(summer)* ( 1/8)
+
+#RDS<-paste("prism_df_summer_",st_all_gage,".rds",sep="")
+
+all_RDS<-paste("../data_prep/prism_df_",st_all_gage,".rds",sep="")
+
+#data_for_py <- paste("prism_df_summer_",st_all_gage,".csv",sep="")
+
+startDate <- "2009-10-01"
+
+endDate <- "2023-09-30"
+
+#PASTA_name<- st_all_gage #"Groundwater-driven stream (USGS 13266000)"
+
+#prism_csv <- paste("PRISM_USGS_",st_all_gage,".csv", sep="")
+#print(prism_csv)
+
+#statCd= c("00001","00003") #00001 max, 00003 mean
+
+readRDS(all_RDS)
+
+```
+
+```{r}
+summary( prism_df$tmean..degrees.C.)
+plot(prism_df$Date, prism_df$tmean..degrees.C.)
+
+summary( prism_df$X_00010_00003 )
+plot(prism_df$Date, prism_df$X_00010_00003 )
+```
+
+
+```{r}
+
+fit_TAS(date=, temp=, yr_type="water")
+```
+
+# Step 1: convert to radian date for sinsoidal extract
+```{r}
+#  rad_d <- 2*pi*d/365
+prism_df$rday <- rad_day( prism_df$Date, yr_type="water")
+plot(prism_df$Date,   prism_df$rday)
+```
+
+# tmean..degrees.C.
+```{r}
+
+for (wy in c(2012:2023)) {
+ # print(yr)
+
+df<-prism_df[prism_df$waterYear==wy,]
+ #conduct linear fit to a sinsddial function 
+  Tfit.lm <- lm(  tmean..degrees.C. ~ sin(rday) + cos(rday), data = df)
+#print(Tfit.lm)
+
+#extract equation for the fit 
+  Tsin.lm <- coef(Tfit.lm)['sin(rday)']*sin(df$rday) +
+              coef(Tfit.lm)['cos(rday)']*cos(df$rday) +
+              coef(Tfit.lm)['(Intercept)']#T0 or mean
+  
+  #Calculate Phase of the signal in days to convert back to Phase Days
+  units_day <- 365
+  Phase <- (units_day/(2*pi))*((3*pi/2) -atan(coef(Tfit.lm)['cos(rday)']/
+                                                   coef(Tfit.lm)['sin(rday)']))
+  
+  #Calculate Amplitude of the signal 
+  Amp <- sqrt((coef(Tfit.lm)['sin(rday)']^2) + (coef(Tfit.lm)['cos(rday)']^2))
+  
+  #remove names to make single values
+  names(Phase) <- NULL; names(Amp) <- NULL
+  
+  #create dataframe output summary data
+  lmStats <- data.frame(
+    water_year=wy,
+    amplitude_C = Amp,
+                          phase_d = Phase,
+                        AdjRsqr=summary(Tfit.lm)$adj.r.squared,
+                            RMSE=sqrt(mean(resid(Tfit.lm)^2)),
+                            sinSlope=coef(Tfit.lm)['sin(rday)'],
+                            cosSlope=coef(Tfit.lm)['cos(rday)'],
+                            YInt=coef(Tfit.lm)['(Intercept)'])#; rownames(lmStats) <- "Air" #would like site_no
+    print(lmStats)
+    
+}
+```
+
+#  X_00010_00003 
+```{r}
+
+for (wy in c(2012:2023)) {
+
+df<-prism_df[prism_df$waterYear==wy,]
+ #conduct linear fit to a sinsddial function 
+  Tfit.lm <- lm(   X_00010_00003 ~ sin(rday) + cos(rday), data = df)
+#print(Tfit.lm)
+
+#extract equation for the fit 
+  Tsin.lm <- coef(Tfit.lm)['sin(rday)']*sin(df$rday) +
+              coef(Tfit.lm)['cos(rday)']*cos(df$rday) +
+              coef(Tfit.lm)['(Intercept)']#T0 or mean
+  
+  #Calculate Phase of the signal in days
+    #to convert back to Phase Days
+  units_day <- 365
+  Phase <- (units_day/(2*pi))*((3*pi/2) -atan(coef(Tfit.lm)['cos(rday)']/
+                                                   coef(Tfit.lm)['sin(rday)']))
+  
+  #Calculate Amplitude of the signal 
+  Amp <- sqrt((coef(Tfit.lm)['sin(rday)']^2) + (coef(Tfit.lm)['cos(rday)']^2))
+  
+  #remove names to make single values
+  names(Phase) <- NULL; names(Amp) <- NULL
+  
+  #create dataframe output summary data
+  lmStats <- data.frame(
+    water_year=wy,
+    amplitude_C = Amp,
+                          phase_d = Phase,
+                        AdjRsqr=summary(Tfit.lm)$adj.r.squared,
+                            RMSE=sqrt(mean(resid(Tfit.lm)^2)),
+                            sinSlope=coef(Tfit.lm)['sin(rday)'],
+                            cosSlope=coef(Tfit.lm)['cos(rday)'],
+                            YInt=coef(Tfit.lm)['(Intercept)'])#; rownames(lmStats) <- "Air" #would like site_no
+    print(lmStats)
+    
+}
+```
+
+
+
+#  X_00010_00003 
+```{r}
+ df<-prism_df 
+ #conduct linear fit to a sinsddial function 
+  Tfit.lm <- lm(   X_00010_00003 ~ sin(rday) + cos(rday), data = df)
+print(Tfit.lm)
+
+#extract equation for the fit 
+  Tsin.lm <- coef(Tfit.lm)['sin(rday)']*sin(df$rday) +
+              coef(Tfit.lm)['cos(rday)']*cos(df$rday) +
+              coef(Tfit.lm)['(Intercept)']#T0 or mean
+  
+  #Calculate Phase of the signal in days
+    #to convert back to Phase Days
+  units_day <- 365
+  Phase <- (units_day/(2*pi))*((3*pi/2) -atan(coef(Tfit.lm)['cos(rday)']/
+                                                   coef(Tfit.lm)['sin(rday)']))
+  
+  #Calculate Amplitude of the signal 
+  Amp <- sqrt((coef(Tfit.lm)['sin(rday)']^2) + (coef(Tfit.lm)['cos(rday)']^2))
+  
+  #remove names to make single values
+  names(Phase) <- NULL; names(Amp) <- NULL
+  
+  #create dataframe output summary data
+  lmStats <- data.frame(amplitude_C = Amp,
+                          phase_d = Phase,
+                        AdjRsqr=summary(Tfit.lm)$adj.r.squared,
+                            RMSE=sqrt(mean(resid(Tfit.lm)^2)),
+                            sinSlope=coef(Tfit.lm)['sin(rday)'],
+                            cosSlope=coef(Tfit.lm)['cos(rday)'],
+                            YInt=coef(Tfit.lm)['(Intercept)'])#; rownames(lmStats) <- "Air" #would like site_no
+  print(lmStats)
+```
+
