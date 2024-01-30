@@ -7,9 +7,9 @@ output: html_document
 
 # Step 1: gage ID
 ```{r}
-st_all_gage<-c("14205350") # 14205350
+st_all_gage<-c("14205350") # 14205350, 12179900
 high_st_all_gage<-c("13018300") # 13018300
-reg_st_all_gage<-c("13211205")
+reg_st_all_gage<-c("13092747") #13150430, 13211205, 13092747
 
 #13150430, 12413370, 13311450, 13213000, 13341050, 13139510, 13018300
 #,13266000, 14205350
@@ -55,46 +55,53 @@ step 1 download data
 prism_df<-readRDS(RDS_all)
 prism_df_high<-readRDS(RDS_all_high)
 prism_df_reg<-readRDS(RDS_all_reg)
-prism_df_reg
+
+table(unique(prism_df$waterYear))
+table(unique(prism_df_high$waterYear))
+table(unique(prism_df_reg$waterYear))
 ```
 
 step 3 calculate monthly fraction (mean, median?)
 ```{r}
 #table(prism_df$mo)
 
-prism_df_mo<-prism_df %>% group_by( mo) %>% summarise(mean_X_00060_00003 = mean( X_00060_00003))
+prism_df_mo<-prism_df %>% group_by( mo) %>% summarise(mean_X_00060_00003 = median( X_00060_00003))
 prism_df_mo$fraction<-prism_df_mo$mean_X_00060_00003/ sum(prism_df_mo$mean_X_00060_00003)*100
 prism_df_mo
 
-prism_df_mo_high<-prism_df_high %>% group_by( mo) %>% summarise(mean_X_00060_00003 = mean( X_00060_00003))
+prism_df_mo_high<-prism_df_high %>% group_by( mo) %>% summarise(mean_X_00060_00003 = median( X_00060_00003))
 prism_df_mo_high$fraction<-prism_df_mo_high$mean_X_00060_00003/ sum(prism_df_mo_high$mean_X_00060_00003)*100
 prism_df_mo_high
 
-prism_df_mo_reg<-prism_df_reg %>% group_by( mo) %>% summarise(mean_X_00060_00003 = mean( X_00060_00003))
+prism_df_mo_reg<-prism_df_reg %>% group_by( mo) %>% summarise(mean_X_00060_00003 = median( X_00060_00003))
 prism_df_mo_reg$fraction<-prism_df_mo_reg$mean_X_00060_00003/ sum(prism_df_mo_reg$mean_X_00060_00003)*100
 prism_df_mo_reg
 ```
 
 step 4 plot
 ```{r}
-plot(prism_df_mo$mo, prism_df_mo$fraction, col="red", ylim=c(0,30))
+plot(prism_df_mo$mo, prism_df_mo$fraction, col="red", ylim=c(0,30),type = "l")
 par(new=T)
-plot(prism_df_mo_high$mo,prism_df_mo_high$fraction, col="green" , ylim=c(0,30))
+plot(prism_df_mo_high$mo,prism_df_mo_high$fraction, col="green" , ylim=c(0,30),type = "l")
 par(new=T)
-plot(prism_df_mo_reg$mo,prism_df_mo_reg$fraction, ylim=c(0,30))
+plot(prism_df_mo_reg$mo,prism_df_mo_reg$fraction, ylim=c(0,30),type = "l")
 ```
 air temp
 ```{r}
 table(prism_df$mo)
 
-prism_df_mo_air<-prism_df %>% group_by( mo) %>% summarise(mean_tmean..degrees.C. = mean(tmean..degrees.C.  ))
+prism_df_mo_air_high<-prism_df_high %>% group_by( mo) %>% summarise(mean_tmean..degrees.C. = mean(tmean..degrees.C.  ))
 
+prism_df_mo_air_reg<-prism_df_reg %>% group_by( mo) %>% summarise(mean_tmean..degrees.C. = mean(tmean..degrees.C.  ))
 
 prism_df_mo_air
 ```
 
 ```{r}
-plot(prism_df_mo_air$mo, prism_df_mo_air$mean_tmean..degrees.C.)
+plot(prism_df_mo_air$mo, prism_df_mo_air$mean_tmean..degrees.C., col="red", ylim=c(-10,25),type = "l")
+par(new=T)
+plot(prism_df_mo_air_high$mo, prism_df_mo_air_high$mean_tmean..degrees.C., col="green" , ylim=c(-10,25),type = "l")
+plot(prism_df_mo_air_reg$mo, prism_df_mo_air_reg$mean_tmean..degrees.C.)
 ```
 
 ```{r}
