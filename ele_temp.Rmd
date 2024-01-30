@@ -65,8 +65,17 @@ step 4 plot
 ```{r}
 plot(prism_df_mo$mo, prism_df_mo$fraction)
 ```
+air temp
+```{r}
+table(prism_df$mo)
+
+prism_df_mo_air<-prism_df %>% group_by( mo) %>% summarise(mean_tmean..degrees.C. = mean(tmean..degrees.C.  ))
+
+
+prism_df_mo_air
+```
 
 ```{r}
-
+plot(prism_df_mo_air$mo, prism_df_mo_air$mean_tmean..degrees.C.)
 ```
 
