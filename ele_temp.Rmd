@@ -58,7 +58,7 @@ prism_df_reg<-readRDS(RDS_all_reg)
 prism_df_reg
 ```
 
-step 3 calculate monthly fraction
+step 3 calculate monthly fraction (mean, median?)
 ```{r}
 #table(prism_df$mo)
 
