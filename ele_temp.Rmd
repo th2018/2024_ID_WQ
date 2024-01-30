@@ -1,0 +1,72 @@
+---
+title: "Untitled"
+author: "Tao Huang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Step 1: gage ID
+```{r}
+st_all_gage<-c("13018300") # 13150430, 12413370, 13311450, 13213000, 13341050, 13139510, 13018300
+#,13266000
+#,13296000
+#, 13311000, 13340600 , 12305000, 13342500, 13016450, 13092747, 13310800, 13192200,13317660, 12322000, 13341000 (no Q)
+#https://waterdata.usgs.gov/monitoring-location/13266000/#parameterCode=00065&period=P7D&showMedian=false
+
+summer=c(6,7,8)
+
+min_days<- 31*length(summer)* ( 1/8)
+
+RDS_all<-paste("data_prep/prism_df_",st_all_gage,".rds",sep="")
+
+RDS<-paste("data_prep/prism_df_summer_",st_all_gage,".rds",sep="")
+
+data_for_py <- paste("prism_df_summer_",st_all_gage,".csv",sep="")
+
+startDate <- "2007-10-01"
+
+endDate <- "2023-09-30"
+
+PASTA_name<- st_all_gage #"Groundwater-driven stream (USGS 13266000)"
+
+prism_csv <- paste("PRISM_USGS_",st_all_gage,".csv", sep="")
+print(prism_csv)
+
+statCd= c("00001","00003") #00001 max, 00003 mean
+
+```
+
+```{r}
+# install.packages("dataRetrieval")
+library("dataRetrieval") # for getting USGS NWIS data
+#library("grwat")
+library("dplyr") # Pipes in R
+library("tidyverse")      # data manipulation and visualization
+```
+
+step 1 download data
+```{r}
+prism_df<-readRDS(RDS_all)
+prism_df
+```
+
+step 3 calculate monthly fraction
+```{r}
+table(prism_df$mo)
+
+prism_df_mo<-prism_df %>% group_by( mo) %>% summarise(mean_X_00060_00003 = mean( X_00060_00003))
+
+prism_df_mo$fraction<-prism_df_mo$mean_X_00060_00003/ sum(prism_df_mo$mean_X_00060_00003)*100
+
+prism_df_mo
+```
+
+step 4 plot
+```{r}
+plot(prism_df_mo$mo, prism_df_mo$fraction)
+```
+
+```{r}
+
+```
+
