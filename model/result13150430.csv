@@ -1,2 +1,2 @@
-,site,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient
-0,13150430,SILVER CREEK AT SPORTSMAN ACCESS NR PICABO ID,43.3233611,-114.10835,2.843269503811138,1.014837191839834,0.851692855429533
+,site,alt_va,drain_area_va,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient,perm
+0,13150430,4834.45,70,SILVER CREEK AT SPORTSMAN ACCESS NR PICABO ID,43.3233611,-114.10835,2.8403315615155744,1.0148271730567273,0.8516985867514181,tmean..degrees.C.

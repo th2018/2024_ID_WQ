@@ -1,2 +1,2 @@
-,site,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient
-0,13092747,ROCK CREEK AB HWY 30/93 XING AT TWIN FALLS ID,42.5625,-114.4947222,1.8527960120428357,0.6625562938626836,0.8616603392854357
+,site,alt_va,drain_area_va,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient,perm
+0,13092747,3630,259,ROCK CREEK AB HWY 30/93 XING AT TWIN FALLS ID,42.5625,-114.4947222,1.918446448432647,0.6626086784766388,0.8616752760934819,tmean..degrees.C.
