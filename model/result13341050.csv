@@ -1,2 +1,2 @@
-,site,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient
-0,13341050,CLEARWATER RIVER NR PECK ID,46.50027778,-116.3925,1.876998010401584,1.4946436412917687,0.5575629781565344
+,site,alt_va,drain_area_va,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient,perm
+0,13341050,940.08,7976,CLEARWATER RIVER NR PECK ID,46.50027778,-116.3925,1.8639439667732116,1.4946447257180886,0.5575615739259423,log_Q

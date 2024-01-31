@@ -1,2 +1,2 @@
-,site,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient
-0,12322000,KOOTENAI RIVER AT PORTHILL ID,48.99638889,-116.5075,4.558921092758535,1.4259796092692991,0.8600282819973877
+,site,alt_va,drain_area_va,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient,perm
+0,12322000,1700.0,13700,KOOTENAI RIVER AT PORTHILL ID,48.99638889,-116.5075,4.589163898426628,1.4260043010112184,0.8600188559292794,log_Q

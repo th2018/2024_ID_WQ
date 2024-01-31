@@ -1,2 +1,2 @@
-,site,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient
-0,13139510,BIG WOOD RIVER AT HAILEY ID TOTAL FLOW,43.5172222,-114.3216667,2.6340968963861258,1.2684316803908715,0.8742264575646489
+,site,alt_va,drain_area_va,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient,perm
+0,13139510,5298.73,614,BIG WOOD RIVER AT HAILEY ID TOTAL FLOW,43.5172222,-114.3216667,2.740607957774504,1.2697640223381972,0.8738840296363855,log_Q

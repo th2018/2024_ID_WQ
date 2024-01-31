@@ -1,2 +1,2 @@
-,site,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient
-0,13311450,"SUGAR CREEK NR STIBNITE, ID",44.9363611,-115.3372222,2.648835603080485,0.8679321842763357,0.9542933548631912
+,site,alt_va,drain_area_va,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient,perm
+0,13311450,5950,,"SUGAR CREEK NR STIBNITE, ID",44.9363611,-115.3372222,2.71119706788092,0.8679319751419462,0.9542930427752315,tmean..degrees.C. & log_Q

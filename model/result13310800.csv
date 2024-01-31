@@ -1,2 +1,2 @@
-,site,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient
-0,13310800,"EFSF SALMON R ABV MEADOW CRK NR STIBNITE, ID",44.90225,-115.3256667,2.8034334885614367,0.7243175144620572,0.939629213773395
+,site,alt_va,drain_area_va,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient,perm
+0,13310800,6546,,"EFSF SALMON R ABV MEADOW CRK NR STIBNITE, ID",44.90225,-115.3256667,2.853151416613506,0.7247337400905199,0.9395395625714972,tmean..degrees.C. & log_Q

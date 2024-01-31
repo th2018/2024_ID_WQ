@@ -1,2 +1,2 @@
-,site,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient
-0,13190500,SF BOISE RIVER AT ANDERSON RANCH DAM ID,43.3436111,-115.4775,2.455271945377646,1.822477174571002,0.13035064194125548
+,site,alt_va,drain_area_va,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient,perm
+0,13190500,3830.0,978,SF BOISE RIVER AT ANDERSON RANCH DAM ID,43.3436111,-115.4775,4.007486636354308,1.8231403637185624,0.1292491746117294,log_Q

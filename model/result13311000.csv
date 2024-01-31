@@ -1,2 +1,2 @@
-,site,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient
-0,13311000,"EF OF SF SALMON RIVER AT STIBNITE, ID",44.9057222,-115.3295,2.765272726746937,0.8240876490388395,0.9418428358117681
+,site,alt_va,drain_area_va,station_nm,dec_lat_va,dec_long_va,max_bias,RMS,correlation_coefficient,perm
+0,13311000,6466,19.3,"EF OF SF SALMON RIVER AT STIBNITE, ID",44.9057222,-115.3295,2.8076008804873824,0.8241651169018106,0.9418294464099265,tmean..degrees.C. & log_Q
