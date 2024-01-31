@@ -9,7 +9,7 @@ output: html_document
 ```{r}
 st_all_gage<-c("13311000") # 13150430, 12413370, 13311450, 13213000, 13341050, 13139510, 13018300, 13211205
 #,13266000, 14219800, 14205350, 12179900
-#,13296000, 12398600
+#,13296000, 12398600, 13307000
 #, 13311000, 13340600 , 12305000, 13342500, 13016450, 13092747, 13310800, 13192200,13317660, 12322000, 13341000 (no Q)
 #https://waterdata.usgs.gov/monitoring-location/13266000/#parameterCode=00065&period=P7D&showMedian=false
 
@@ -154,16 +154,29 @@ summary(prism_df_summer)
 ```{r}
 prism_df
 
-boxplot(log(prism_df_summer$X_00060_00003) ~ prism_df_summer$yr)
+boxplot(log(prism_df_summer$X_00060_00003) ~ prism_df_summer$yr ,xlab="", ylab="log_Q", main=  ChoptankInfo$station_nm )
 
 boxplot(   (prism_df_summer$tmean..degrees.C. - prism_df_summer$X_00010_00003 ) ~ prism_df_summer$yr)
 
 boxplot(   (   prism_df_summer$X_00010_00003/prism_df_summer$tmean..degrees.C. ) ~ prism_df_summer$yr , ylim = c(0, 1), xlab="", ylab="ST/AT", main=  ChoptankInfo$station_nm )
 
-boxplot(   prism_df_summer$tmean..degrees.C.   ~ prism_df_summer$yr)
+boxplot(   prism_df_summer$tmean..degrees.C.   ~ prism_df_summer$yr,xlab="", ylab="Air temperature (deg C)", main=  ChoptankInfo$station_nm)
 
 boxplot(   prism_df_summer$X_00010_00003   ~ prism_df_summer$yr)
 
+```
+
+```{r}
+prism_df_summer_mean<- prism_df_summer %>%
+  group_by( yr) %>%
+  summarise(mean_ST = mean(X_00010_00003)
+            ,mean_AT = mean(  tmean..degrees.C.)
+            )
+
+prism_df_summer_mean$ratio<-prism_df_summer_mean$mean_ST/prism_df_summer_mean$mean_AT
+prism_df_summer_mean
+
+boxplot(    prism_df_summer_mean$ratio~prism_df_summer_mean$yr , ylim = c(0, 1), xlab="", ylab="ST/AT", main=  ChoptankInfo$station_nm )
 ```
 
 
