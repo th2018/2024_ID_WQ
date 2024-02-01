@@ -86,6 +86,16 @@ plot(prism_df_mo_high$mo,prism_df_mo_high$fraction, col="green" , ylim=c(0,30),t
 par(new=T)
 plot(prism_df_mo_reg$mo,prism_df_mo_reg$fraction, ylim=c(0,30),type = "l")
 ```
+
+step 4 plot
+```{r}
+#plot(prism_df_mo$mo, prism_df_mo$fraction, col="red", ylim=c(0,30),type = "l")
+#par(new=T)
+plot(prism_df_mo_high$mo,prism_df_mo_high$fraction, col="dodgerblue" , ylim=c(0,30),type = "l",xlab = "Month",ylab="Fraction of annual streamflow")
+par(new=T)
+plot(prism_df_mo_reg$mo,prism_df_mo_reg$fraction, ylim=c(0,30),type = "l",xlab = " " ,ylab="")
+```
+
 air temp
 ```{r}
 table(prism_df$mo)
