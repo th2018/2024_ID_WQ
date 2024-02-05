@@ -7,9 +7,11 @@ output: html_document
 
 # Step 1: gage ID
 ```{r}
-st_all_gage<-c("14205350") # 14205350, 12179900
-high_st_all_gage<-c("13018300") # 13018300
-reg_st_all_gage<-c("13092747") #13150430, 13211205, 13092747
+st_all_gage<-c("14205350") # 14205350: EF Dairy CR Abv Murtaugh CR NR Meacham Corner, OR - 14205350
+#, 12179900, 14152500 (alt=852.58)
+high_st_all_gage<-c("13018300") # 13018300: Cache Creek Near Jackson, WY - 13018300
+reg_st_all_gage<-c("13092747") #13150430: SILVER CREEK AT SPORTSMAN ACCESS NR PICABO ID 
+#13211205, 13092747
 
 #13150430, 12413370, 13311450, 13213000, 13341050, 13139510, 13018300
 #,13266000, 14205350
@@ -77,6 +79,90 @@ prism_df_mo_reg<-prism_df_reg %>% group_by( mo) %>% summarise(mean_X_00060_00003
 prism_df_mo_reg$fraction<-prism_df_mo_reg$mean_X_00060_00003/ sum(prism_df_mo_reg$mean_X_00060_00003)*100
 prism_df_mo_reg
 ```
+
+
+```{r}
+prism_df_mo$type="Low elevation" # (USGS 14205350)"
+prism_df_mo_high$type="High elevation" # (USGS 13018300)"
+
+
+
+prism_df_all<-rbind(prism_df_mo,prism_df_mo_high )
+prism_df_all$month<-month(prism_df_all$mo 
+                          , label = TRUE, abbr = FALSE 
+                          )
+
+ggplot(prism_df_all, aes(x =  mo, y = fraction, color=type #fill = c("dodgerblue", "blue", "red")  
+                         )) +
+  geom_line()+
+ # scale_x_discrete(
+   # labels = month(1:12, label = TRUE) 
+  #  ) +
+  labs(title = " ",
+       x = " ",
+       y = " ",
+       color = " ")
+
+
+ggplot(prism_df_all, aes(x =  month, y = fraction ,group=type, color = type)) +
+  geom_line( linewidth=4  )+
+  labs(title = " ",
+       x = " ",
+       y = "Fraction of annual streamflow",
+       color = " ")+
+  theme(text=element_text(size=16),
+        legend.position = "top",
+        #, legend.justification = "right"
+      
+        axis.text.x = element_text(angle = 45, hjust = 1)
+         
+        )+ scale_color_manual(values=c("dodgerblue", "blue"))
+
+
+```
+
+
+```{r}
+prism_df_mo$type="Low elevation" # (USGS 14205350)"
+prism_df_mo_high$type="High elevation" # (USGS 13018300)"
+prism_df_mo_reg$type="Regulated" # (USGS 13092747)"
+
+library(lubridate)
+
+prism_df_all<-rbind(prism_df_mo,prism_df_mo_high,prism_df_mo_reg)
+prism_df_all$month<-month(prism_df_all$mo 
+                          , label = TRUE, abbr = FALSE 
+                          )
+
+ggplot(prism_df_all, aes(x =  mo, y = fraction, color=type #fill = c("dodgerblue", "blue", "red")  
+                         )) +
+  geom_line()+
+ # scale_x_discrete(
+   # labels = month(1:12, label = TRUE) 
+  #  ) +
+  labs(title = " ",
+       x = " ",
+       y = " ",
+       color = " ")
+
+
+ggplot(prism_df_all, aes(x =  month, y = fraction ,group=type, color = type)) +
+  geom_line( linewidth=4)+
+  labs(title = " ",
+       x = " ",
+       y = "Fraction of annual streamflow",
+       color = " ")+
+  theme(text=element_text(size=16),
+        legend.position = "top",
+        #, legend.justification = "right"
+      
+        axis.text.x = element_text(angle = 45, hjust = 1)
+         
+        )+ scale_color_manual(values=c("dodgerblue", "blue", "red"))
+
+
+```
+
 
 step 4 plot
 ```{r}
