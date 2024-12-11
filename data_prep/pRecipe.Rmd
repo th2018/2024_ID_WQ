@@ -1,0 +1,146 @@
+---
+title: "pRecipe"
+author: "Tao Huang"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+https://cran.r-project.org/web/packages/pRecipe/vignettes/introduction.html#heatmap
+
+```{r}
+library(pRecipe)
+library(kableExtra)
+library("raster")
+```
+
+## Satellite-Based Products
+
+```{r satellite, echo=FALSE, results = 'asis'}
+tibble::tribble(
+  ~"Data Set", ~"Spatial Resolution", ~Global, ~Land, ~Ocean, ~"Temporal Resolution", ~"Record Length", ~"Get Data", ~Reference, 
+"CHIRPS v2.0", "0.05°", "", "50°SN", "", "Monthly", "1981/01-2022/07", "[Download](https://www.chc.ucsb.edu/data/chirps)", "@funk_climate_2015",
+"CMAP", "2.5°", "x", "x", "x", "Monthly", "1979/01-2022/07", "[Download](https://psl.noaa.gov/data/gridded/data.cmap.html)", "@xie_global_1997",
+"CMORPH", "0.25°", "60°SN", "60°SN", "60°SN", "Daily", "1998/01-2021/12", "[Download](https://www.ncei.noaa.gov/data/cmorph-high-resolution-global-precipitation-estimates/)", "@joyce_cmorph_2004",
+"GPCP v2.3", "0.5°", "x", "x", "x", "Monthly", "1979/01-2022/05", "[Download](https://psl.noaa.gov/data/gridded/data.gpcp.html)", "@adler_global_2018",
+"GPM IMERGM v06", "0.1°", "x", "x", "x", "Monthly", "2000/06-2020/12", "[Download](https://doi.org/10.5067/GPM/IMERG/3B-MONTH/06)", "@huffman_gpm_2019",
+"MSWEP v2.8", "0.1°", "x", "x", "x", "Monthly", "1979/02-2022/06", "[Download](https://www.gloh2o.org/mswep/)", "@beck_mswep_2019",
+"PERSIANN-CDR", "0.25°", "60°SN", "60°SN", "60°SN", "Monthly", "1983/01-2022/06", "[Download](https://chrsdata.eng.uci.edu/)", "@ashouri_persiann-cdr_2015",
+"TRMM 3B43 v7", "0.25°", "50°SN", "50°SN", "50°SN", "Monthly", "1998/01-2019/12", "[Download](https://doi.org/10.5067/TRMM/TMPA/MONTH/7)", "@huffman_trmm_2010"
+) |>
+  kbl(align = 'lcccccccr') |>
+  kable_styling("striped") |>
+  add_header_above(c(" " = 1, " " = 1, "Spatial Coverage" = 3, " " = 1, " " = 1, " " = 1, " " = 1)) |>
+  unclass() |> cat()
+```
+
+## Reanalysis Products
+
+```{r reanalysis, echo=FALSE, results = 'asis'}
+tibble::tribble(
+  ~"Data Set", ~"Spatial Resolution", ~Global, ~Land, ~Ocean, ~"Temporal Resolution", ~"Record Length", ~"Get Data", ~Reference,
+"20CR v3", "1°", "x", "x", "x", "Monthly", "1836/01-2015/12", "[Download](https://psl.noaa.gov/data/gridded/data.20thC_ReanV3.html)", "@slivinski_towards_2019",
+"ERA-20C", "1.125°", "x", "x", "x", "Monthly", "1900/01-2010/12", "[Download](https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era-20c)", "@poli_era-20c_2016",
+"ERA5", "0.25°", "x", "x", "x", "Monthly", "1959/01-2021/12", "[Download](https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era5)", "@hersbach_era5_2020",
+"JRA-55", "1.25°", "x", "x", "x", "Monthly", "1958/01-2021/12", "[Download](https://rda.ucar.edu/datasets/ds628.1/dataaccess/)", "@kobayashi_jra-55_2015",
+"MERRA-2", "0.5° x 0.625°", "x", "x", "x", "Monthly", "1980/01-2023/01", "[Download](https://disc.gsfc.nasa.gov/datasets?page=1&project=MERRA-2)", "@gelaro_modern-era_2017",
+"NCEP/NCAR R1", "1.875°", "x", "x", "x", "Monthly", "1948/01-2022/08", "[Download](https://psl.noaa.gov/data/gridded/data.ncep.reanalysis.derived.html)", "@kalnay_ncepncar_1996",
+"NCEP/DOE R2", "1.875°", "x", "x", "x", "Monthly", "1979/01-2022/08", "[Download](https://psl.noaa.gov/data/gridded/data.ncep.reanalysis2.html)", "@kanamitsu_ncepdoe_2002"
+) |>
+  kbl(align = 'lcccccccr') |>
+  kable_styling("striped") |>
+  add_header_above(c(" " = 1, " " = 1, "Spatial Coverage" = 3, " " = 1, " " = 1, " " = 1, " " = 1)) |>
+  unclass() |> cat()
+```
+
+## Hydrological Model Forcing
+
+```{r models, echo=FALSE, results = 'asis'}
+tibble::tribble(
+  ~"Data Set", ~"Spatial Resolution", ~Global, ~Land, ~Ocean, ~"Temporal Resolution", ~"Record Length", ~"Get Data", ~Reference,
+"FLDAS", "0.1°", "", "x", "", "Monthly", "1982/01-2021/12", "[Download](https://ldas.gsfc.nasa.gov/fldas/fldas-data-download)", "@mcnally_land_2017",
+"GLDAS CLSM v2.0", "0.25°", "", "x", "", "Daily", "1948/01-2014/12", "[Download](https://ldas.gsfc.nasa.gov/gldas/gldas-get-data)", "@rodell_global_2004",
+"GLDAS NOAH v2.0", "0.25°", "", "x", "", "Monthly", "1948/01-2014/12", "[Download](https://ldas.gsfc.nasa.gov/gldas/gldas-get-data)", "@rodell_global_2004",
+"GLDAS VIC v2.0", "1°", "", "x", "", "Monthly", "1948/01-2014/12", "[Download](https://ldas.gsfc.nasa.gov/gldas/gldas-get-data)", "@rodell_global_2004",
+"TerraClimate", "4$km$", "", "x", "", "Monthly", "1958/01-2021/12", "[Download](https://www.climatologylab.org/terraclimate.html)", "@abatzoglou_terraclimate_2018"
+) |>
+  kbl(align = 'lcccccccr') |>
+  kable_styling("striped") |>
+  add_header_above(c(" " = 1, " " = 1, "Spatial Coverage" = 3, " " = 1, " " = 1, " " = 1, " " = 1)) |>
+  unclass() |> cat()
+```
+
+```{r}
+setGeneric("sellonlatbox", function(x, y) standardGeneric("sellonlatbox"))
+
+#' @rdname sellonlatbox
+#' @method sellonlatbox Raster
+
+setMethod("sellonlatbox", "Raster",
+          function(x, y) {
+            lonlatbox <- extent(y[1], y[2], y[3], y[4])
+            dummie <- crop(x, lonlatbox)
+            return(dummie)
+          })
+
+#' @rdname sellonlatbox
+#' @method sellonlatbox data.table
+
+setMethod("sellonlatbox", "data.table",
+          function(x, y) {
+            dummie <- x[(lon >= y[1]) & (lon <= y[2]) &
+                                     (lat >= y[3]) & (lat <= y[4])]
+            return(dummie)
+          })
+
+#' @rdname sellonlatbox
+#' @method sellonlatbox character
+
+setMethod("sellonlatbox", "character",
+          function(x, y) {
+            dummie_brick <- brick(x)
+            lonlatbox <- extent(y[1], y[2], y[3], y[4])
+            dummie <- crop(dummie_brick, lonlatbox)
+            return(dummie)
+          })
+```
+
+
+```{r}
+wd<-"/Users/taohuang/Downloads"
+download_data(
+  
+  #"merra2",
+  "terraclimate",
+  wd, timestep = "yearly")
+r <- raster::brick(paste0( wd,
+#"/merra-2_tp_mm_global_198001_202410_025_yearly.nc"
+                           "/terraclimate_tp_mm_land_195801_202312_025_yearly.nc"
+))
+s <- sellonlatbox(r, c(
+  43.1 ,43.2, -70.94, -70.93 
+  
+  #12.24, 18.85, 48.56, 51.12
+  ))
+s
+```
+
+```{r}
+plot_map(s)
+```
+
+
+```{r}
+gpm_global_ts <- fldmean( s)
+head(gpm_global_ts, 12)
+```
+
+```{r}
+plot_line(gpm_global_ts)
+```
+
+```{r}
+plot_heatmap(gpm_global_ts)
+```
+
